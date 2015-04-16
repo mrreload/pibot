@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import threading, time
+import threading
+
 mc = __import__('messageclient')
 vc = __import__('playa')
 cfg = __import__('config')
@@ -15,9 +16,10 @@ thread_list.append(t2)
 t1 = threading.Thread(target=mc.control())
 thread_list.append(t1)
 t1.start()
-t1.join()
+
+#t1.join()
 t2.start()
-t2.join()
+#t2.join()
 
 
 # Starts threads

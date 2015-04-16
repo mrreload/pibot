@@ -1,12 +1,14 @@
 __author__ = 'mrreload'
 
 import gi
+import os
+
 gi.require_version('Gst', '1.0')
 from gi.repository import GObject, Gst, Gtk
+import pygame
 
 
 # Needed for window.get_xid(), xvimagesink.set_window_handle(), respectively:
-from gi.repository import GdkX11, GstVideo
 
 
 GObject.threads_init()
@@ -92,8 +94,32 @@ class Player(object):
         # in the on_sync_message() handler because threading issues will cause
         # segfaults there.
         self.xid = self.drawingarea.get_property('window').get_xid()
+        self.window.connect("realize", self._realized)
         self.pipeline.set_state(Gst.State.PLAYING)
+
         Gtk.main()
+
+    def _realized(self, widget, data=None):
+        os.putenv('SDL_WINDOWID', str(widget.window.xid))
+        pygame.init()
+        pygame.display.set_mode((800, 450), 0, 0)
+        self.screen = pygame.display.get_surface()
+            # Fill background
+        background = pygame.Surface(self.screen.get_size())
+        background = background.convert()
+        background.fill((250, 250, 250))
+        #background = pygame.image.load("background.png")
+        # Display some text
+        font = pygame.font.Font(None, 36)
+        text = font.render("hello", 1, (10, 10, 10))
+        textpos = text.get_rect()
+        textpos.centerx = background.get_rect().centerx
+        background.blit(text, textpos)
+
+        # Blit everything to the screen
+        self.screen.blit(background, (0, 0))
+        pygame.display.flip()
+        GObject.timeout_add(200, self.draw)
 
     def quit(self, window):
         self.pipeline.set_state(Gst.State.NULL)
@@ -116,6 +142,8 @@ class Player(object):
         print('on_error():', msg.parse_error())
 
 
+
 # p = Player()
 # p.run()
-# show_video("192.168.1.227", 5000)
+#show_video("192.168.1.227", 5000)
+#Player.displaytext("HEY THERE")
