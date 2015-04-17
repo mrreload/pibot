@@ -29,8 +29,23 @@ class Player(object):
 
 		self.window = tk.Tk()
 		self.window.title("PiBot Control")
-		self.window.geometry('1280x720')
-		self.video = tk.Frame(self.window, bg='#000000')
+		self.window.geometry('1280x730')
+		self.video = tk.Frame(self.window, bg="")
+
+		# Keyboard bindings
+		#self.video.bind("<Key>", self.key)
+		self.video.bind("<Button-1>", self.callback)
+		self.video.bind('<Left>', self.leftKey)
+		self.video.bind('<Right>', self.rightKey)
+		self.video.bind('<Up>', self.upKey)
+		self.video.bind('<Down>', self.downKey)
+		self.video.bind('<KeyRelease-Left>', self.move_stop)
+		self.video.bind('<KeyRelease-Right>', self.move_stop)
+		self.video.bind('<KeyRelease-Up>', self.move_stop)
+		self.video.bind('<KeyRelease-Down>', self.move_stop)
+
+		self.telemetry = tk.Label(self.window, text="Hello, world!")
+		self.telemetry.pack()
 		self.video.pack(side=tk.BOTTOM, anchor=tk.S, expand=tk.YES, fill=tk.BOTH)
 		self.window_id = self.video.winfo_id()
 		print(self.window_id)
@@ -87,6 +102,37 @@ class Player(object):
 		# self.pipeline.add(autovideosink)
 		# autovideosink.set_property("sync", "false")
 		# videoconvert.link(autovideosink)
+
+	# def key(self, event):
+	# print "pressed", repr(event.char)
+
+	def callback(self, event):
+		self.video.focus_set()
+		print "clicked at", event.x, event.y
+
+	def leftKey(self, event):
+		print "Left arrow pressed"
+		self.telemetry.config(text="Left")
+		self.telemetry.update_idletasks()
+
+	def rightKey(self, event):
+		print "Right arrow pressed"
+		self.telemetry.config(text="Right")
+		self.telemetry.update_idletasks()
+
+	def upKey(self, event):
+		print "Up arrow pressed"
+		self.telemetry.config(text="Forward")
+		self.telemetry.update_idletasks()
+
+	def downKey(self, event):
+		print "Down arrow pressed"
+		self.telemetry.config(text="Backward")
+		self.telemetry.update_idletasks()
+
+	def move_stop(self, event):
+		self.telemetry.config(text="Stop")
+		self.telemetry.update_idletasks()
 
 	def run(self):
 		# Start the Gstreamer pipeline
