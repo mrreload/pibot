@@ -9,6 +9,7 @@ from gi.repository import Gst
 
 # Needed for window.get_xid(), xvimagesink.set_window_handle(), respectively:
 # from gi.repository import GdkX11, GstVideo
+from gi.repository import GdkX11, GstVideo
 
 # GObject.threads_init()
 Gst.init(None)
