@@ -6,6 +6,7 @@ gi.require_version('Gst', '1.0')
 from gi.repository import Gst
 
 # Needed for window.get_xid(), xvimagesink.set_window_handle(), respectively:
+# from gi.repository import GdkX11, GstVideo
 
 #GObject.threads_init()
 Gst.init(None)
