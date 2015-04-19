@@ -1,11 +1,12 @@
 __author__ = 'mrreload'
 import Tkinter as tk
 
-cfg = __import__('config')
+mc = __import__('chat_client')
+import time, Queue
 import gi
-
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
+from cfg_glob import msg_send_q
 
 # Needed for window.get_xid(), xvimagesink.set_window_handle(), respectively:
 # from gi.repository import GdkX11, GstVideo
@@ -15,22 +16,27 @@ from gi.repository import GdkX11, GstVideo
 Gst.init(None)
 
 
-def show_video():
-	global v_host
-	v_host = cfg.host
-	global v_port
-	v_port = cfg.vid_port
-	p = Player()
+def show_video(snd_q):
+	p = Player(snd_q)
 	p.run()
 
 
 class Player(object):
-	def __init__(self):
-
+	def __init__(self, send_q):
+		self.send_q = send_q
+		self.send_q.join()
+		config = {}
+		execfile("client.conf", config)
+		global v_host
+		v_host = config["host"]
+		global v_port
+		v_port = config["video_port"]
 		self.window = tk.Tk()
 		self.window.title("PiBot Control")
-		self.window.geometry('1280x730')
-		self.video = tk.Frame(self.window, bg="")
+		self.window.geometry('1280x720')
+		self.video = tk.Frame(self.window, width=1280, height=720, bg="", colormap="new", relief=tk.SUNKEN)
+
+
 
 		# Keyboard bindings
 		#self.video.bind("<Key>", self.key)
@@ -43,12 +49,17 @@ class Player(object):
 		self.video.bind('<KeyRelease-Right>', self.move_stop)
 		self.video.bind('<KeyRelease-Up>', self.move_stop)
 		self.video.bind('<KeyRelease-Down>', self.move_stop)
+		self.video.bind('<a>', self.leftPan)
+		self.video.bind('<d>', self.rightPan)
+		self.video.bind('<w>', self.upTilt)
+		self.video.bind('<x>', self.downTilt)
+		self.video.bind('<s>', self.centerCam)
 
-		self.telemetry = tk.Label(self.window, text="Hello, world!")
+		self.telemetry = tk.Label(self.video, text="Hello, world!", compound=tk.CENTER)
 		self.telemetry.pack()
 		self.video.pack(side=tk.BOTTOM, anchor=tk.S, expand=tk.YES, fill=tk.BOTH)
 		self.window_id = self.video.winfo_id()
-		print(self.window_id)
+		# print(self.window_id)
 
 		# Create GStreamer pipeline
 		self.pipeline = Gst.Pipeline()
@@ -111,30 +122,67 @@ class Player(object):
 		print "clicked at", event.x, event.y
 
 	def leftKey(self, event):
-		print "Left arrow pressed"
+		#print "Left arrow pressed"
 		self.telemetry.config(text="Left")
 		self.telemetry.update_idletasks()
+		mc.sendMsg("L")
 
 	def rightKey(self, event):
-		print "Right arrow pressed"
+		#print "Right arrow pressed"
 		self.telemetry.config(text="Right")
 		self.telemetry.update_idletasks()
+		mc.sendMsg("R")
 
 	def upKey(self, event):
-		print "Up arrow pressed"
+		#print "Up arrow pressed"
 		self.telemetry.config(text="Forward")
 		self.telemetry.update_idletasks()
+		mc.sendMsg("F")
 
 	def downKey(self, event):
-		print "Down arrow pressed"
+		#print "Down arrow pressed"
 		self.telemetry.config(text="Backward")
 		self.telemetry.update_idletasks()
+		mc.sendMsg("B")
+
+	def leftPan(self, event):
+		# print "Left Pan pressed"
+		self.telemetry.config(text="Pan Left")
+		self.telemetry.update_idletasks()
+		# mc.sendMsg("Pan_Left")
+		mc.send_q.put("Pan_Left")
+
+	def rightPan(self, event):
+		# print "Right Pan pressed"
+		self.telemetry.config(text="Pan Right")
+		self.telemetry.update_idletasks()
+		msg_send_q.put("Pan_Right")
+
+	def upTilt(self, event):
+		# print "Up Tilt pressed"
+		self.telemetry.config(text="Tilt Up")
+		self.telemetry.update_idletasks()
+		mc.sendMsg("Tilt_Up")
+
+	def downTilt(self, event):
+		# print "Down tilt pressed"
+		self.telemetry.config(text="Tilt Down")
+		self.telemetry.update_idletasks()
+		mc.sendMsg("Tilt_Down")
+
+	def centerCam(self, event):
+		# print "Camera/Sensor Reset to Center"
+		self.telemetry.config(text="Camera/Sensor Reset to Center")
+		self.telemetry.update_idletasks()
+		mc.sendMsg("Reset")
 
 	def move_stop(self, event):
-		self.telemetry.config(text="Stop")
-		self.telemetry.update_idletasks()
+		# self.telemetry.config(text="Stop")
+		#self.telemetry.update_idletasks()
+		mc.sendMsg("S")
 
 	def run(self):
+		self.send_q.put("Hello")
 		# Start the Gstreamer pipeline
 		self.pipeline.set_state(Gst.State.PLAYING)
 		# Open the Tk window
@@ -148,9 +196,9 @@ class Player(object):
 		if message.get_structure() is None:
 			return
 		if message.get_structure().get_name() == 'prepare-window-handle':
-			print('prepare-window-handle')
+			#print('prepare-window-handle')
 			image_sink = message.src
-			image_sink.set_property('force-aspect-ratio', False)
+			image_sink.set_property('force-aspect-ratio', True)
 			image_sink.set_window_handle(w_id)
 		else:
 			print("No Match")
@@ -168,4 +216,4 @@ class Player(object):
 		print('on_error():', msg.parse_error())
 
 
-show_video()
+		#show_video()

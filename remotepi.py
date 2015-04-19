@@ -1,31 +1,24 @@
 #!/usr/bin/python
 
-import threading
+import threading as th
+from cfg_glob import msg_send_q
+import time
 
-mc = __import__('messageclient')
-vc = __import__('playa')
-cfg = __import__('config')
-
-thread_list = []
-
-
-t2 = threading.Thread(target=vc.show_video(cfg.host, cfg.vid_port))
-thread_list.append(t2)
+master = __import__('master_control')
+chat = __import__('chat_client')
 
 
-t1 = threading.Thread(target=mc.control())
-thread_list.append(t1)
-t1.start()
+def main():
+	t1 = th.Thread(target=chat.run)
+	t1.start()
 
-#t1.join()
-t2.start()
-#t2.join()
+	time.sleep(1)
+	t2 = th.Thread(target=master.show_video, args=(msg_send_q,))
+	t2.start()
 
 
-# Starts threads
-# for thread in thread_list:
-#     thread.start()
-#
-# for thread in thread_list:
-#     thread.join()
+main()
+
+
+
 

@@ -1,7 +1,7 @@
 # 
 import pygame
 
-mc = __import__('msgClient')
+mc = __import__('chat_client')
 
 screen = pygame.display.set_mode((250, 100))
 
