@@ -41,21 +41,8 @@ class Player(object):
 
 
 		# Keyboard bindings
-		#self.video.bind("<Key>", self.key)
-		self.video.bind("<Button-1>", self.callback)
-		self.video.bind('<Left>', self.leftKey)
-		self.video.bind('<Right>', self.rightKey)
-		self.video.bind('<Up>', self.upKey)
-		self.video.bind('<Down>', self.downKey)
-		self.video.bind('<KeyRelease-Left>', self.move_stop)
-		self.video.bind('<KeyRelease-Right>', self.move_stop)
-		self.video.bind('<KeyRelease-Up>', self.move_stop)
-		self.video.bind('<KeyRelease-Down>', self.move_stop)
-		self.video.bind('<a>', self.leftPan)
-		self.video.bind('<d>', self.rightPan)
-		self.video.bind('<w>', self.upTilt)
-		self.video.bind('<x>', self.downTilt)
-		self.video.bind('<s>', self.centerCam)
+		self.setup_key_binds()
+
 
 		self.telemetry = tk.Label(self.video, text="Hello, world!", compound=tk.CENTER)
 		self.telemetry.pack()
@@ -94,37 +81,58 @@ class Player(object):
 		self.pipeline.add(h264parse)
 		rtph264depay.link(h264parse)
 
-		# avdec_h264 = Gst.ElementFactory.make("avdec_h264", "avdec_h264")
-		# self.pipeline.add(avdec_h264)
-		# h264parse.link(avdec_h264)
+		avdec_h264 = Gst.ElementFactory.make("avdec_h264", "avdec_h264")
+		self.pipeline.add(avdec_h264)
+		h264parse.link(avdec_h264)
+
+		videoconvert = Gst.ElementFactory.make("videoconvert", "videoconvert")
+		self.pipeline.add(videoconvert)
+		avdec_h264.link(videoconvert)
+
+		# vaapidecode = Gst.ElementFactory.make("vaapidecode", "vaapidecode")
+		# self.pipeline.add(vaapidecode)
+		# h264parse.link(vaapidecode)
 		#
-		# videoconvert = Gst.ElementFactory.make("videoconvert", "videoconvert")
-		# self.pipeline.add(videoconvert)
-		# avdec_h264.link(videoconvert)
+		# vaapisink = Gst.ElementFactory.make("vaapisink", "vaapisink")
+		# self.pipeline.add(vaapisink)
+		# vaapisink.set_property("sync", "false")
+		# vaapidecode.link(vaapisink)
 
-		vaapidecode = Gst.ElementFactory.make("vaapidecode", "vaapidecode")
-		self.pipeline.add(vaapidecode)
-		h264parse.link(vaapidecode)
-
-		vaapisink = Gst.ElementFactory.make("vaapisink", "vaapisink")
-		self.pipeline.add(vaapisink)
-		vaapisink.set_property("sync", "false")
-		vaapidecode.link(vaapisink)
-
-		# autovideosink = Gst.ElementFactory.make("autovideosink", "autovideosink")
-		# self.pipeline.add(autovideosink)
-		# autovideosink.set_property("sync", "false")
-		# videoconvert.link(autovideosink)
+		autovideosink = Gst.ElementFactory.make("autovideosink", "autovideosink")
+		self.pipeline.add(autovideosink)
+		autovideosink.set_property("sync", "false")
+		videoconvert.link(autovideosink)
 
 	# def key(self, event):
 	# print "pressed", repr(event.char)
+
+	def setup_key_binds(self):
+		# self.video.bind("<Key>", self.key)
+		self.video.bind("<Button-1>", self.callback)
+		self.video.bind('<Left>', self.leftKey)
+		self.video.bind('<Right>', self.rightKey)
+		self.video.bind('<Up>', self.upKey)
+		self.video.bind('<Down>', self.downKey)
+		self.video.bind('<KeyRelease-Left>', self.move_stop)
+		self.video.bind('<KeyRelease-Right>', self.move_stop)
+		self.video.bind('<KeyRelease-Up>', self.move_stop)
+		self.video.bind('<KeyRelease-Down>', self.move_stop)
+		self.video.bind('<a>', self.leftPan)
+		self.video.bind('<d>', self.rightPan)
+		self.video.bind('<w>', self.upTilt)
+		self.video.bind('<x>', self.downTilt)
+		self.video.bind('<s>', self.centerCam)
+		self.video.bind('<4>', self.leftSweep)
+		self.video.bind('<6>', self.rightSweep)
+		self.video.bind('<8>', self.upSweep)
+		self.video.bind('<2>', self.downSweep)
 
 	def callback(self, event):
 		self.video.focus_set()
 		print "clicked at", event.x, event.y
 
 	def leftKey(self, event):
-		#print "Left arrow pressed"
+		# print "Left arrow pressed"
 		self.telemetry.config(text="Left")
 		self.telemetry.update_idletasks()
 		#mc.sendMsg("L")
@@ -154,14 +162,14 @@ class Player(object):
 		self.telemetry.update_idletasks()
 		# mc.sendMsg("Pan_Left")
 		#chat.sendcommand("Pan_Left")
-		chat.sendcommand("Sweep_Left")
+		chat.sendcommand("Pan_Left")
 
 	def rightPan(self, event):
 		# print "Right Pan pressed"
 		self.telemetry.config(text="Pan Right")
 		self.telemetry.update_idletasks()
 		#chat.sendcommand("Pan_Right")
-		chat.sendcommand("Sweep_Right")
+		chat.sendcommand("Pan_Right")
 
 	def upTilt(self, event):
 		# print "Up Tilt pressed"
@@ -174,6 +182,33 @@ class Player(object):
 		self.telemetry.config(text="Tilt Down")
 		self.telemetry.update_idletasks()
 		chat.sendcommand("Tilt_Down")
+
+	def leftSweep(self, event):
+		# print "Left Pan pressed"
+		self.telemetry.config(text="Pan Left")
+		self.telemetry.update_idletasks()
+		# mc.sendMsg("Pan_Left")
+		#chat.sendcommand("Pan_Left")
+		chat.sendcommand("Sweep_Left")
+
+	def rightSweep(self, event):
+		# print "Right Pan pressed"
+		self.telemetry.config(text="Pan Right")
+		self.telemetry.update_idletasks()
+		#chat.sendcommand("Pan_Right")
+		chat.sendcommand("Sweep_Right")
+
+	def upSweep(self, event):
+		# print "Up Tilt pressed"
+		self.telemetry.config(text="Tilt Up")
+		self.telemetry.update_idletasks()
+		chat.sendcommand("Sweep_Up")
+
+	def downSweep(self, event):
+		# print "Down tilt pressed"
+		self.telemetry.config(text="Tilt Down")
+		self.telemetry.update_idletasks()
+		chat.sendcommand("Sweep_Down")
 
 	def centerCam(self, event):
 		# print "Camera/Sensor Reset to Center"

@@ -1,7 +1,7 @@
 __author__ = 'mrreload'
 
 global host
-host = "192.168.1.227"
+host = "thehoaglins.com"
 global vid_port
 vid_port = 5000
 global msg_port
