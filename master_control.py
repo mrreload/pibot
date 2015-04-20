@@ -1,7 +1,8 @@
 __author__ = 'mrreload'
 import Tkinter as tk
 
-mc = __import__('chat_client')
+
+chat = __import__('chat_client')
 import time, Queue
 import gi
 gi.require_version('Gst', '1.0')
@@ -16,21 +17,22 @@ from gi.repository import GdkX11, GstVideo
 Gst.init(None)
 
 
-def show_video(snd_q):
-	p = Player(snd_q)
+def show_video():
+	p = Player()
 	p.run()
 
 
 class Player(object):
-	def __init__(self, send_q):
-		self.send_q = send_q
-		self.send_q.join()
+	def __init__(self):
+		#self.send_q = send_q
+		#self.send_q.join()
 		config = {}
 		execfile("client.conf", config)
 		global v_host
 		v_host = config["host"]
 		global v_port
 		v_port = config["video_port"]
+		chat.connecttoserver()
 		self.window = tk.Tk()
 		self.window.title("PiBot Control")
 		self.window.geometry('1280x720')
@@ -95,7 +97,7 @@ class Player(object):
 		# avdec_h264 = Gst.ElementFactory.make("avdec_h264", "avdec_h264")
 		# self.pipeline.add(avdec_h264)
 		# h264parse.link(avdec_h264)
-
+		#
 		# videoconvert = Gst.ElementFactory.make("videoconvert", "videoconvert")
 		# self.pipeline.add(videoconvert)
 		# avdec_h264.link(videoconvert)
@@ -125,64 +127,68 @@ class Player(object):
 		#print "Left arrow pressed"
 		self.telemetry.config(text="Left")
 		self.telemetry.update_idletasks()
-		mc.sendMsg("L")
+		#mc.sendMsg("L")
+		chat.sendcommand("L")
 
 	def rightKey(self, event):
 		#print "Right arrow pressed"
 		self.telemetry.config(text="Right")
 		self.telemetry.update_idletasks()
-		mc.sendMsg("R")
+		chat.sendcommand("R")
 
 	def upKey(self, event):
 		#print "Up arrow pressed"
 		self.telemetry.config(text="Forward")
 		self.telemetry.update_idletasks()
-		mc.sendMsg("F")
+		chat.sendcommand("F")
 
 	def downKey(self, event):
 		#print "Down arrow pressed"
 		self.telemetry.config(text="Backward")
 		self.telemetry.update_idletasks()
-		mc.sendMsg("B")
+		chat.sendcommand("B")
 
 	def leftPan(self, event):
 		# print "Left Pan pressed"
 		self.telemetry.config(text="Pan Left")
 		self.telemetry.update_idletasks()
 		# mc.sendMsg("Pan_Left")
-		mc.send_q.put("Pan_Left")
+		#chat.sendcommand("Pan_Left")
+		chat.sendcommand("Sweep_Left")
 
 	def rightPan(self, event):
 		# print "Right Pan pressed"
 		self.telemetry.config(text="Pan Right")
 		self.telemetry.update_idletasks()
-		msg_send_q.put("Pan_Right")
+		#chat.sendcommand("Pan_Right")
+		chat.sendcommand("Sweep_Right")
 
 	def upTilt(self, event):
 		# print "Up Tilt pressed"
 		self.telemetry.config(text="Tilt Up")
 		self.telemetry.update_idletasks()
-		mc.sendMsg("Tilt_Up")
+		chat.sendcommand("Tilt_Up")
 
 	def downTilt(self, event):
 		# print "Down tilt pressed"
 		self.telemetry.config(text="Tilt Down")
 		self.telemetry.update_idletasks()
-		mc.sendMsg("Tilt_Down")
+		chat.sendcommand("Tilt_Down")
 
 	def centerCam(self, event):
 		# print "Camera/Sensor Reset to Center"
 		self.telemetry.config(text="Camera/Sensor Reset to Center")
 		self.telemetry.update_idletasks()
-		mc.sendMsg("Reset")
+		chat.sendcommand("Reset")
 
 	def move_stop(self, event):
-		# self.telemetry.config(text="Stop")
-		#self.telemetry.update_idletasks()
-		mc.sendMsg("S")
+		self.telemetry.config(text="Stop")
+		self.telemetry.update_idletasks()
+		#mc.sendMsg("S")
+		chat.sendcommand("S")
 
 	def run(self):
-		self.send_q.put("Hello")
+		#self.send_q.put("Hello")
 		# Start the Gstreamer pipeline
 		self.pipeline.set_state(Gst.State.PLAYING)
 		# Open the Tk window

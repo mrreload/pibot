@@ -1,14 +1,14 @@
 __author__ = 'mrreload'
 # Tcp Chat server
 
-import socket, select
+import socket, select, sys, traceback
 
 ms = __import__('messageserv')
 cfg = __import__('config')
 
 # Function to broadcast chat messages to all connected clients
 def broadcast_data(message):
-	# Do not send the message to master socket and the client who has send us the message
+	#Do not send the message to master socket and the client who has send us the message
 	for socket in CONNECTION_LIST:
 		if socket != server_socket and socket != sock:
 			try:
@@ -20,7 +20,7 @@ def broadcast_data(message):
 
 
 if __name__ == "__main__":
-
+	mserv = ms.MessageServ()
 	# List to keep track of socket descriptors
 	CONNECTION_LIST = []
 	RECV_BUFFER = 4096  # Advisable to keep it as an exponent of 2
@@ -37,12 +37,12 @@ if __name__ == "__main__":
 
 	print "Chat server started on port " + str(PORT)
 
-	while True:
+	while 1:
 		# Get the list sockets which are ready to be read through select
 		read_sockets, write_sockets, error_sockets = select.select(CONNECTION_LIST, [], [])
 
 		for sock in read_sockets:
-			# New connection
+			#New connection
 			if sock == server_socket:
 				# Handle the case in which there is a new connection received through server_socket
 				sockfd, addr = server_socket.accept()
@@ -54,19 +54,20 @@ if __name__ == "__main__":
 			#Some incoming message from a client
 			else:
 				# Data received from client, process it
-				try:
+				#try:
 					#In Windows, sometimes when a TCP program closes abruptly,
 					# a "Connection reset by peer" exception will be thrown
-					data = sock.recv(RECV_BUFFER)
-					if data:
-						broadcast_data("\r" + '<' + str(sock.getpeername()) + '> ' + data)
-						ms.read_data(data)
+				data = sock.recv(RECV_BUFFER)
+				if data:
+					#broadcast_data("\r" + '<' + str(sock.getpeername()) + '> ' + data)
+					mserv.read_data(data)
 
-				except:
-					broadcast_data("Client (%s, %s) is offline" % addr)
-					print "Client (%s, %s) is offline" % addr
-					sock.close()
-					CONNECTION_LIST.remove(sock)
-					continue
+				#except:
+				#	print "Unexpected error:", sys.exc_info()[0]
+				#	broadcast_data("Client (%s, %s) is offline" % addr)
+				#	print "Client (%s, %s) is offline" % addr
+				#	sock.close()
+				#	CONNECTION_LIST.remove(sock)
+				#	continue
 
 	server_socket.close()

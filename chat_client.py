@@ -1,10 +1,10 @@
 __author__ = 'mrreload'
 # telnet program example
-import socket, select, string, sys, threading
+import socket, select, string, sys, threading, time
 import Queue
 from cfg_glob import msg_send_q
 
-global s
+
 
 
 def init_vars():
@@ -14,6 +14,11 @@ def init_vars():
 	m_host = config["host"]
 	global m_port
 	m_port = config["message_port"]
+	global s
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	s.settimeout(2)
+
+
 
 
 def prompt():
@@ -38,10 +43,10 @@ def run():
 		sys.exit()
 
 	print 'Connected to remote host. Start sending messages'
-	#prompt()
+	prompt()
 
 	while 1:
-		socket_list = [s]
+		socket_list = [sys.stdin, s]
 
 		# Get the list sockets which are readable
 		read_sockets, write_sockets, error_sockets = select.select(socket_list, [], [])
@@ -56,21 +61,48 @@ def run():
 				else:
 					#print data
 					sys.stdout.write(data)
-				#prompt()
+				prompt()
 
 			#user entered a message
 			else:
-				if not msg_send_q.empty():
-					mes = msg_send_q.get()
-					print(mes)
+				# if not msg_send_q.empty():
+				# 	mes = msg_send_q.get()
+				# 	print(mes)
 					#msg = q.get(True, 0.05)
-					s.send(mes)
-				#prompt()
+				msg = sys.stdin.readline()
+				s.send(msg)
+				prompt()
 
 
 # def run():
 # 	do_connect()
 
-def sendMsg(c_msg):
-	con = Message()
-	con.snd(con, c_msg)
+# def sendMsg(c_msg):
+# 	con = Message()
+# 	con.snd(con, c_msg)
+
+
+def connecttoserver():
+	init_vars()
+
+
+	# connect to remote host
+	try:
+		s.connect((m_host, m_port))
+	except:
+		print("Unable to connect to: " + m_host + ":" + str(m_port))
+		sys.exit()
+
+	print 'Connected to remote host. Start sending messages'
+
+	data = s.recv(4096)
+	sys.stdout.write(data)
+
+
+def sendcommand(cmnd):
+	prompt()
+	sys.stdout.write(cmnd)
+	s.send(cmnd)
+
+
+
