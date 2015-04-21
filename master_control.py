@@ -1,11 +1,10 @@
 __author__ = 'mrreload'
 import Tkinter as tk
 ch = __import__('chat_client')
-import time, Queue, threading
+import time, Queue, threading, os
 import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst
-from cfg_glob import msg_send_q
 
 # Needed for window.get_xid(), xvimagesink.set_window_handle(), respectively:
 # from gi.repository import GdkX11, GstVideo
@@ -13,25 +12,14 @@ from gi.repository import GdkX11, GstVideo
 
 # GObject.threads_init()
 Gst.init(None)
-telemetry = 0
 
 def show_video():
-	msg_rcvr = ch.chat_client()
-	worker1 = threading.Thread(target=msg_rcvr.run)
-	worker1.setDaemon(True)
-	worker1.start()
 	p = Player()
 	p.run()
-
-def update_tele(servertext):
-	telemetry.config(text=servertext)
-	telemetry.update_idletasks()
 
 
 class Player(object):
 	def __init__(self):
-		#self.send_q = send_q
-		#self.send_q.join()
 		config = {}
 		execfile("client.conf", config)
 		global v_host
@@ -40,6 +28,7 @@ class Player(object):
 		v_port = config["video_port"]
 		self.chat = ch.chat_client()
 		self.chat.connecttoserver()
+		self.chat.receivedata(self.chat.msg_q, self.chat.s)
 		self.window = tk.Tk()
 		self.window.title("PiBot Control")
 		self.window.geometry('1280x720')
@@ -47,9 +36,9 @@ class Player(object):
 
 		# Keyboard bindings
 		self.setup_key_binds()
-		global telemetry
-		telemetry = tk.Label(self.video, text="Hello, world!", compound=tk.CENTER)
-		telemetry.pack()
+
+		self.telemetry = tk.Label(self.video, text="Hello, world!", compound=tk.CENTER)
+		self.telemetry.pack()
 		self.video.pack(side=tk.BOTTOM, anchor=tk.S, expand=tk.YES, fill=tk.BOTH)
 		self.window_id = self.video.winfo_id()
 		# print(self.window_id)
@@ -85,27 +74,28 @@ class Player(object):
 		self.pipeline.add(h264parse)
 		rtph264depay.link(h264parse)
 
-		avdec_h264 = Gst.ElementFactory.make("avdec_h264", "avdec_h264")
-		self.pipeline.add(avdec_h264)
-		h264parse.link(avdec_h264)
+		if os.name == "posix":
+			vaapidecode = Gst.ElementFactory.make("vaapidecode", "vaapidecode")
+			self.pipeline.add(vaapidecode)
+			h264parse.link(vaapidecode)
 
-		videoconvert = Gst.ElementFactory.make("videoconvert", "videoconvert")
-		self.pipeline.add(videoconvert)
-		avdec_h264.link(videoconvert)
+			vaapisink = Gst.ElementFactory.make("vaapisink", "vaapisink")
+			self.pipeline.add(vaapisink)
+			vaapisink.set_property("sync", "false")
+			vaapidecode.link(vaapisink)
+		else:
+			avdec_h264 = Gst.ElementFactory.make("avdec_h264", "avdec_h264")
+			self.pipeline.add(avdec_h264)
+			h264parse.link(avdec_h264)
 
-		# vaapidecode = Gst.ElementFactory.make("vaapidecode", "vaapidecode")
-		# self.pipeline.add(vaapidecode)
-		# h264parse.link(vaapidecode)
-		#
-		# vaapisink = Gst.ElementFactory.make("vaapisink", "vaapisink")
-		# self.pipeline.add(vaapisink)
-		# vaapisink.set_property("sync", "false")
-		# vaapidecode.link(vaapisink)
+			videoconvert = Gst.ElementFactory.make("videoconvert", "videoconvert")
+			self.pipeline.add(videoconvert)
+			avdec_h264.link(videoconvert)
 
-		autovideosink = Gst.ElementFactory.make("autovideosink", "autovideosink")
-		self.pipeline.add(autovideosink)
-		autovideosink.set_property("sync", "false")
-		videoconvert.link(autovideosink)
+			autovideosink = Gst.ElementFactory.make("autovideosink", "autovideosink")
+			self.pipeline.add(autovideosink)
+			autovideosink.set_property("sync", "false")
+			videoconvert.link(autovideosink)
 
 	# def key(self, event):
 	# print "pressed", repr(event.char)
@@ -260,6 +250,8 @@ class Player(object):
 	def on_error(self, bus, msg):
 		print('on_error():', msg.parse_error())
 
-
+	def update_tele(self, servertext):
+		self.telemetry.config(text=servertext)
+		self.telemetry.update_idletasks()
 
 		#show_video()
