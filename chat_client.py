@@ -20,7 +20,7 @@ class chat_client(object):
 		sys.stdout.write('<You> ')
 		sys.stdout.flush()
 
-	def listenmsg(self, mq, sl):
+	def listenmsg(self, mq, sl, th):
 
 		while 1:
 			socket_list = [sl]
@@ -39,6 +39,7 @@ class chat_client(object):
 						#print data
 						# sys.stdout.write(data)
 						self.msg_q.put(data)
+						# th.update_tele(data)
 
 					# self.prompt()
 				time.sleep(.1)
@@ -62,16 +63,40 @@ class chat_client(object):
 		self.s.sendall(cmnd)
 
 	def receivedata(self, msgq, sockm, pthr):
-		worker1 = threading.Thread(name="msgworker", target=self.listenmsg, args=(msgq, sockm,))
+		worker1 = threading.Thread(name="msgworker", target=self.listenmsg, args=(msgq, sockm, pthr))
 		worker1.setDaemon(True)
 		worker1.start()
 		# master = mc.Player()
 		time.sleep(.5)
-		while not self.msg_q.empty():
-			dmsg = msgq.get()
-			print("Queue data: " + dmsg)
-			pthr.update_tele(dmsg)
-		time.sleep(.1)
+		pthr.update_tele("BLAH")
+		# while True:
+		# 	while not self.msg_q.empty():
+		# 		print "getting data from Q"
+		# 		dmsg = self.msg_q.get()
+		# 		print("Queue data: " + dmsg)
+				# pthr.telemetry.config(text="BLAH")
+				# pthr.telemetry.update_idletasks()
+
+
+
+		time.sleep(2)
+
+	def screen_thread(self, msgq, pthr):
+		worker2 = threading.Thread(name="msgblitter", target=self.blitmsg, args=(msgq, pthr))
+		worker2.setDaemon(True)
+		worker2.start()
+
+	def blitmsg(self, msg_Q, vth):
+		while True:
+			while not msg_Q.empty():
+				print "getting data from Q"
+				dmsg = msg_Q.get()
+				print("Queue data: " + dmsg)
+				vth.telemetry.config(text="BLAH")
+				vth.telemetry.update_idletasks()
+
+			time.sleep(2)
+			# time.sleep(.1)
 
 
 
