@@ -13,8 +13,10 @@ from gi.repository import GdkX11, GstVideo
 # GObject.threads_init()
 Gst.init(None)
 
+
 def show_video():
 	p = Player()
+
 	p.run()
 
 
@@ -32,11 +34,11 @@ class Player(object):
 		self.window = tk.Tk()
 		self.window.title("PiBot Control")
 		self.window.geometry('1280x720')
+		self.window.protocol("WM_DELETE_WINDOW", self.exithandler)
 		self.video = tk.Frame(self.window, width=1280, height=720, bg="", colormap="new", relief=tk.SUNKEN)
 
 		# Keyboard bindings
 		self.setup_key_binds()
-
 		self.telemetry = tk.Label(self.video, text="Hello, world!", compound=tk.CENTER)
 		self.telemetry.pack()
 		self.video.pack(side=tk.BOTTOM, anchor=tk.S, expand=tk.YES, fill=tk.BOTH)
@@ -251,7 +253,15 @@ class Player(object):
 		print('on_error():', msg.parse_error())
 
 	def update_tele(self, servertext):
-		self.telemetry.config(text=servertext)
-		self.telemetry.update_idletasks()
+		telemetry.config(text=servertext)
+		telemetry.update_idletasks()
+
+	def exithandler(self):
+		print "Closing Video Stream"
+		self.pipeline.set_state(Gst.State.NULL)
+		print "Destroying root window"
+		self.window.destroy()
+		print "Quitting"
+		self.window.quit()
 
 		#show_video()

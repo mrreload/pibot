@@ -71,7 +71,7 @@ class chat_client(object):
 		while not self.msg_q.empty():
 			dmsg = msgq.get()
 			print("Queue data: " + dmsg)
-			mc.Player().update_tele(dmsg)
+		# mc.Player().update_tele(dmsg)
 
 
 
