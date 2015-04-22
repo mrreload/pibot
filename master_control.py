@@ -43,10 +43,12 @@ class Player(object):
 		self.telemetry.pack()
 		self.video.pack(side=tk.BOTTOM, anchor=tk.S, expand=tk.YES, fill=tk.BOTH)
 		self.window_id = self.video.winfo_id()
-		# print(self.window_id)
+
+		# Setup Messaging Connection
 		self.chat = ch.chat_client()
 		self.chat.connecttoserver()
 		self.chat.receivedata(self.chat.msg_q, self.chat.s, self)
+
 		# Create GStreamer pipeline
 		self.pipeline = Gst.Pipeline()
 

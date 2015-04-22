@@ -66,11 +66,12 @@ class chat_client(object):
 		worker1.setDaemon(True)
 		worker1.start()
 		# master = mc.Player()
-		time.sleep(1)
+		time.sleep(.5)
 		while not self.msg_q.empty():
 			dmsg = msgq.get()
 			print("Queue data: " + dmsg)
 			pthr.update_tele(dmsg)
+		time.sleep(.1)
 
 
 

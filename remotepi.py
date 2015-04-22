@@ -6,6 +6,7 @@ import time
 
 master = __import__('master_control')
 
+
 print("Starting Video.....")
 master.show_video()
 
