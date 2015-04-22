@@ -13,12 +13,15 @@ class msg_server(object):
 		self.CONNECTION_LIST = []
 		self.RECV_BUFFER = 4096  # Advisable to keep it as an exponent of 2
 		self.PORT = cfg.msg_port
+		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		# this has no effect, why ?
+		self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 	# Function to broadcast chat messages to all connected clients
 	def broadcast_data(self, message):
 		# Do not send the message to master socket and the client who has send us the message
 		for socket in self.CONNECTION_LIST:
-			if socket != server_socket and socket != sock:
+			if socket != self.server_socket and socket != sock:
 				try:
 					socket.send(message)
 				except:
@@ -26,16 +29,11 @@ class msg_server(object):
 					socket.close()
 					self.CONNECTION_LIST.remove(socket)
 
-
 	def nothuman(self):
 		mserv = ms.MessageServ()
 
-		server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		# this has no effect, why ?
-		server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		server_socket.bind(("0.0.0.0", self.PORT))
-		server_socket.listen(10)
-
+		self.server_socket.bind(("0.0.0.0", self.PORT))
+		self.server_socket.listen(10)
 		# Add server socket to the list of readable connections
 		self.CONNECTION_LIST.append(server_socket)
 
@@ -47,15 +45,14 @@ class msg_server(object):
 
 			for sock in read_sockets:
 				# New connection
-				if sock == server_socket:
+				if sock == self.server_socket:
 					# Handle the case in which there is a new connection received through server_socket
-					sockfd, addr = server_socket.accept()
+					sockfd, addr = self.server_socket.accept()
 					self.CONNECTION_LIST.append(sockfd)
 					print "Client (%s, %s) connected" % addr
+					self.broadcast_data("[%s:%s] entered room\n" % addr)
 
-					broadcast_data("[%s:%s] entered room\n" % addr)
-
-				#Some incoming message from a client
+				# Some incoming message from a client
 				else:
 					# Data received from client, process it
 					#try:
@@ -75,6 +72,7 @@ class msg_server(object):
 					#	continue
 
 		server_socket.close()
+
 
 if __name__ == "__main__":
 	m = msg_server()
