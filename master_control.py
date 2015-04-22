@@ -15,6 +15,7 @@ Gst.init(None)
 
 
 def show_video():
+
 	p = Player()
 
 	p.run()
@@ -28,9 +29,7 @@ class Player(object):
 		v_host = config["host"]
 		global v_port
 		v_port = config["video_port"]
-		self.chat = ch.chat_client()
-		self.chat.connecttoserver()
-		self.chat.receivedata(self.chat.msg_q, self.chat.s)
+
 		self.window = tk.Tk()
 		self.window.title("PiBot Control")
 		self.window.geometry('1280x720')
@@ -39,12 +38,15 @@ class Player(object):
 
 		# Keyboard bindings
 		self.setup_key_binds()
-		self.telemetry = tk.Label(self.video, text="Hello, world!", compound=tk.CENTER)
+		self.telemetry = tk.Label(self.video, text="Hello, world!", compound=tk.CENTER, bg='white')
+
 		self.telemetry.pack()
 		self.video.pack(side=tk.BOTTOM, anchor=tk.S, expand=tk.YES, fill=tk.BOTH)
 		self.window_id = self.video.winfo_id()
 		# print(self.window_id)
-
+		self.chat = ch.chat_client()
+		self.chat.connecttoserver()
+		self.chat.receivedata(self.chat.msg_q, self.chat.s, self)
 		# Create GStreamer pipeline
 		self.pipeline = Gst.Pipeline()
 
@@ -129,92 +131,92 @@ class Player(object):
 
 	def leftKey(self, event):
 		# print "Left arrow pressed"
-		telemetry.config(text="Left")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Left")
+		self.telemetry.update_idletasks()
 		#mc.sendMsg("L")
 		self.chat.sendcommand("L")
 
 	def rightKey(self, event):
 		#print "Right arrow pressed"
-		telemetry.config(text="Right")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Right")
+		self.telemetry.update_idletasks()
 		self.chat.sendcommand("R")
 
 	def upKey(self, event):
 		#print "Up arrow pressed"
-		telemetry.config(text="Forward")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Forward")
+		self.telemetry.update_idletasks()
 		self.chat.sendcommand("F")
 
 	def downKey(self, event):
 		#print "Down arrow pressed"
-		telemetry.config(text="Backward")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Backward")
+		self.telemetry.update_idletasks()
 		self.chat.sendcommand("B")
 
 	def leftPan(self, event):
 		# print "Left Pan pressed"
-		telemetry.config(text="Pan Left")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Pan Left")
+		self.telemetry.update_idletasks()
 		# mc.sendMsg("Pan_Left")
 		#chat.sendcommand("Pan_Left")
 		self.chat.sendcommand("Pan_Left")
 
 	def rightPan(self, event):
 		# print "Right Pan pressed"
-		telemetry.config(text="Pan Right")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Pan Right")
+		self.telemetry.update_idletasks()
 		#chat.sendcommand("Pan_Right")
 		self.chat.sendcommand("Pan_Right")
 
 	def upTilt(self, event):
 		# print "Up Tilt pressed"
-		telemetry.config(text="Tilt Up")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Tilt Up")
+		self.telemetry.update_idletasks()
 		self.chat.sendcommand("Tilt_Up")
 
 	def downTilt(self, event):
 		# print "Down tilt pressed"
-		telemetry.config(text="Tilt Down")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Tilt Down")
+		self.telemetry.update_idletasks()
 		self.chat.sendcommand("Tilt_Down")
 
 	def leftSweep(self, event):
 		# print "Left Pan pressed"
-		telemetry.config(text="Pan Left")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Pan Left")
+		self.telemetry.update_idletasks()
 		# mc.sendMsg("Pan_Left")
 		#chat.sendcommand("Pan_Left")
 		self.chat.sendcommand("Sweep_Left")
 
 	def rightSweep(self, event):
 		# print "Right Pan pressed"
-		telemetry.config(text="Pan Right")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Pan Right")
+		self.telemetry.update_idletasks()
 		#chat.sendcommand("Pan_Right")
 		self.chat.sendcommand("Sweep_Right")
 
 	def upSweep(self, event):
 		# print "Up Tilt pressed"
-		telemetry.config(text="Tilt Up")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Tilt Up")
+		self.telemetry.update_idletasks()
 		self.chat.sendcommand("Sweep_Up")
 
 	def downSweep(self, event):
 		# print "Down tilt pressed"
-		telemetry.config(text="Tilt Down")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Tilt Down")
+		self.telemetry.update_idletasks()
 		self.chat.sendcommand("Sweep_Down")
 
 	def centerCam(self, event):
 		# print "Camera/Sensor Reset to Center"
-		telemetry.config(text="Camera/Sensor Reset to Center")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Camera/Sensor Reset to Center")
+		self.telemetry.update_idletasks()
 		self.chat.sendcommand("Reset")
 
 	def move_stop(self, event):
-		telemetry.config(text="Stop")
-		telemetry.update_idletasks()
+		self.telemetry.config(text="Stop")
+		self.telemetry.update_idletasks()
 		#mc.sendMsg("S")
 		self.chat.sendcommand("S")
 
@@ -253,8 +255,8 @@ class Player(object):
 		print('on_error():', msg.parse_error())
 
 	def update_tele(self, servertext):
-		telemetry.config(text=servertext)
-		telemetry.update_idletasks()
+		self.telemetry.config(text=servertext)
+		self.telemetry.update_idletasks()
 
 	def exithandler(self):
 		print "Closing Video Stream"

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import threading as th
-from cfg_glob import msg_send_q
+
 import time
 
 master = __import__('master_control')

@@ -2,7 +2,6 @@ __author__ = 'mrreload'
 
 import socket, select, string, sys, threading, time
 import Queue
-from cfg_glob import msg_send_q
 mc = __import__('master_control')
 
 
@@ -62,7 +61,7 @@ class chat_client(object):
 		# self.s.send(cmnd)
 		self.s.sendall(cmnd)
 
-	def receivedata(self, msgq, sockm):
+	def receivedata(self, msgq, sockm, pthr):
 		worker1 = threading.Thread(name="msgworker", target=self.listenmsg, args=(msgq, sockm,))
 		worker1.setDaemon(True)
 		worker1.start()
@@ -71,7 +70,7 @@ class chat_client(object):
 		while not self.msg_q.empty():
 			dmsg = msgq.get()
 			print("Queue data: " + dmsg)
-		# mc.Player().update_tele(dmsg)
+			pthr.update_tele(dmsg)
 
 
 
