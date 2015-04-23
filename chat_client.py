@@ -68,7 +68,7 @@ class chat_client(object):
 		worker1.start()
 		# master = mc.Player()
 		time.sleep(.5)
-		pthr.update_tele("BLAH")
+		# pthr.update_tele("BLAH")
 		# while True:
 	# print "Outer Loop"
 		# 	while not self.msg_q.empty():
@@ -89,10 +89,10 @@ class chat_client(object):
 			# print "Outer Loop"
 			while not msg_Q.empty():
 				print "getting data from Q"
+				time.sleep(1)
 				dmsg = msg_Q.get()
 				print("Queue data: " + dmsg)
-				vth.telemetry.config(text=dmsg)
-				vth.telemetry.update_idletasks()
+				vth.update_tele(dmsg)
 
 			time.sleep(2)
 			# time.sleep(.1)

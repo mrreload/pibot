@@ -48,7 +48,8 @@ class Player(object):
 		self.chat = ch.chat_client()
 		self.chat.connecttoserver()
 		self.chat.receivedata(self.chat.msg_q, self.chat.s, self)
-		self.chat.screen_thread(self.chat.msg_q, self)
+		self.chat.msg_q.put("Hey There!")
+		self.update_tele2()
 
 		# Create GStreamer pipeline
 		self.pipeline = Gst.Pipeline()
@@ -260,6 +261,13 @@ class Player(object):
 	def update_tele(self, servertext):
 		self.telemetry.config(text=servertext)
 		self.telemetry.update_idletasks()
+
+	def update_tele2(self):
+		if not self.chat.msg_q.empty():
+			servertext = self.chat.msg_q.get()
+			self.telemetry.config(text=servertext)
+			self.telemetry.update_idletasks()
+			self.window.after(1000, self.update_tele2)
 
 	def exithandler(self):
 		print "Closing Video Stream"
