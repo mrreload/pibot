@@ -63,6 +63,8 @@ class msg_server(object):
 					if data:
 						#broadcast_data("\r" + '<' + str(sock.getpeername()) + '> ' + data)
 						mserv.read_data(data)
+						self.srv_q.put(data)
+						self.broadcast_data(data)
 
 					#except:
 					#	print "Unexpected error:", sys.exc_info()[0]
@@ -78,7 +80,7 @@ class msg_server(object):
 		while not self.srv_q.empty():
 			dmsg = srv_q.get()
 			print("Queue data: " + dmsg)
-			broadcast_data(dmsg)
+			self.broadcast_data(dmsg)
 
 if __name__ == "__main__":
 	m = msg_server()

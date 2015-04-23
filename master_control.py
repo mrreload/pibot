@@ -48,7 +48,7 @@ class Player(object):
 		self.chat = ch.chat_client()
 		self.chat.connecttoserver()
 		self.chat.receivedata(self.chat.msg_q, self.chat.s, self)
-		# self.chat.screen_thread(self.chat.msg_q, self)
+		self.chat.screen_thread(self.chat.msg_q, self)
 
 		# Create GStreamer pipeline
 		self.pipeline = Gst.Pipeline()

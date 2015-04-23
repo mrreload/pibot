@@ -70,16 +70,14 @@ class chat_client(object):
 		time.sleep(.5)
 		pthr.update_tele("BLAH")
 		# while True:
+	# print "Outer Loop"
 		# 	while not self.msg_q.empty():
 		# 		print "getting data from Q"
 		# 		dmsg = self.msg_q.get()
 		# 		print("Queue data: " + dmsg)
-				# pthr.telemetry.config(text="BLAH")
-				# pthr.telemetry.update_idletasks()
-
-
-
-		time.sleep(2)
+	# pthr.telemetry.config(text="BLAH-BLAH")
+	# 		pthr.telemetry.update_idletasks()
+	# 	time.sleep(2)
 
 	def screen_thread(self, msgq, pthr):
 		worker2 = threading.Thread(name="msgblitter", target=self.blitmsg, args=(msgq, pthr))
@@ -88,11 +86,12 @@ class chat_client(object):
 
 	def blitmsg(self, msg_Q, vth):
 		while True:
+			# print "Outer Loop"
 			while not msg_Q.empty():
 				print "getting data from Q"
 				dmsg = msg_Q.get()
 				print("Queue data: " + dmsg)
-				vth.telemetry.config(text="BLAH")
+				vth.telemetry.config(text=dmsg)
 				vth.telemetry.update_idletasks()
 
 			time.sleep(2)
