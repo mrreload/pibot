@@ -12,12 +12,11 @@ from gi.repository import GdkX11, GstVideo
 
 # GObject.threads_init()
 Gst.init(None)
+Empty = Queue.Empty
 
 
 def show_video():
-
 	p = Player()
-
 	p.run()
 
 
@@ -29,26 +28,26 @@ class Player(object):
 		v_host = config["host"]
 		global v_port
 		v_port = config["video_port"]
-
+		self.msg_q = Queue.Queue(maxsize=0)
 		self.window = tk.Tk()
 		self.window.title("PiBot Control")
-		self.window.geometry('1280x720')
+		self.window.geometry('1280x740')
 		self.window.protocol("WM_DELETE_WINDOW", self.exithandler)
-		self.video = tk.Frame(self.window, width=1280, height=720, bg="", colormap="new", relief=tk.SUNKEN)
+		self.videoframe = tk.Frame(self.window, width=1280, height=720)
 
 		# Keyboard bindings
 		self.setup_key_binds()
-		self.telemetry = tk.Label(self.video, text="Hello, world!", compound=tk.CENTER, bg='white')
+		self.telemetry = tk.Label(self.window, text="Hello, world!", font=("Arial", 12), bg='black', fg="white")
 
-		self.telemetry.pack()
-		self.video.pack(side=tk.BOTTOM, anchor=tk.S, expand=tk.YES, fill=tk.BOTH)
-		self.window_id = self.video.winfo_id()
+		self.telemetry.place(relwidth=1, height=20)
+		self.videoframe.pack(side=tk.BOTTOM, anchor=tk.S, expand=tk.YES, fill=tk.BOTH)
+		self.window_id = self.videoframe.winfo_id()
 
 		# Setup Messaging Connection
 		self.chat = ch.chat_client()
 		self.chat.connecttoserver()
-		self.chat.receivedata(self.chat.msg_q, self.chat.s, self)
-		self.chat.msg_q.put("Hey There!")
+		self.chat.receivedata(self.msg_q, self.chat.s, self)
+		self.msg_q.put("Waiting for messages!")
 		self.update_tele2()
 
 		# Create GStreamer pipeline
@@ -110,27 +109,27 @@ class Player(object):
 
 	def setup_key_binds(self):
 		# self.video.bind("<Key>", self.key)
-		self.video.bind("<Button-1>", self.callback)
-		self.video.bind('<Left>', self.leftKey)
-		self.video.bind('<Right>', self.rightKey)
-		self.video.bind('<Up>', self.upKey)
-		self.video.bind('<Down>', self.downKey)
-		self.video.bind('<KeyRelease-Left>', self.move_stop)
-		self.video.bind('<KeyRelease-Right>', self.move_stop)
-		self.video.bind('<KeyRelease-Up>', self.move_stop)
-		self.video.bind('<KeyRelease-Down>', self.move_stop)
-		self.video.bind('<a>', self.leftPan)
-		self.video.bind('<d>', self.rightPan)
-		self.video.bind('<w>', self.upTilt)
-		self.video.bind('<x>', self.downTilt)
-		self.video.bind('<s>', self.centerCam)
-		self.video.bind('<4>', self.leftSweep)
-		self.video.bind('<6>', self.rightSweep)
-		self.video.bind('<8>', self.upSweep)
-		self.video.bind('<2>', self.downSweep)
+		self.videoframe.bind("<Button-1>", self.callback)
+		self.videoframe.bind('<Left>', self.leftKey)
+		self.videoframe.bind('<Right>', self.rightKey)
+		self.videoframe.bind('<Up>', self.upKey)
+		self.videoframe.bind('<Down>', self.downKey)
+		self.videoframe.bind('<KeyRelease-Left>', self.move_stop)
+		self.videoframe.bind('<KeyRelease-Right>', self.move_stop)
+		self.videoframe.bind('<KeyRelease-Up>', self.move_stop)
+		self.videoframe.bind('<KeyRelease-Down>', self.move_stop)
+		self.videoframe.bind('<a>', self.leftPan)
+		self.videoframe.bind('<d>', self.rightPan)
+		self.videoframe.bind('<w>', self.upTilt)
+		self.videoframe.bind('<x>', self.downTilt)
+		self.videoframe.bind('<s>', self.centerCam)
+		self.videoframe.bind('<4>', self.leftSweep)
+		self.videoframe.bind('<6>', self.rightSweep)
+		self.videoframe.bind('<8>', self.upSweep)
+		self.videoframe.bind('<2>', self.downSweep)
 
 	def callback(self, event):
-		self.video.focus_set()
+		self.videoframe.focus_set()
 		print "clicked at", event.x, event.y
 
 	def leftKey(self, event):
@@ -232,6 +231,7 @@ class Player(object):
 		self.window.mainloop()
 
 	def quit(self, window):
+
 		self.pipeline.set_state(Gst.State.NULL)
 		self.window.destroy()
 
@@ -263,13 +263,21 @@ class Player(object):
 		self.telemetry.update_idletasks()
 
 	def update_tele2(self):
-		if not self.chat.msg_q.empty():
-			servertext = self.chat.msg_q.get()
+		if not self.msg_q.empty():
+			servertext = self.msg_q.get_nowait()
 			self.telemetry.config(text=servertext)
 			self.telemetry.update_idletasks()
-			self.window.after(1000, self.update_tele2)
+		self.telemetry.after(100, self.update_tele2)
+
 
 	def exithandler(self):
+		print "Closing out"
+		try:
+			while 1:
+				print "Q:" + self.msg_q.get_nowait()
+		except Empty:
+			print "Queue empty"
+			pass
 		print "Closing Video Stream"
 		self.pipeline.set_state(Gst.State.NULL)
 		print "Destroying root window"

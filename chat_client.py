@@ -37,8 +37,8 @@ class chat_client(object):
 						sys.exit()
 					else:
 						#print data
-						# sys.stdout.write(data)
-						self.msg_q.put(data)
+						sys.stdout.write(data)
+						th.msg_q.put(data)
 						# th.update_tele(data)
 
 					# self.prompt()
@@ -63,6 +63,7 @@ class chat_client(object):
 		self.s.sendall(cmnd)
 
 	def receivedata(self, msgq, sockm, pthr):
+		pthr.msg_q.put("Startup init")
 		worker1 = threading.Thread(name="msgworker", target=self.listenmsg, args=(msgq, sockm, pthr))
 		worker1.setDaemon(True)
 		worker1.start()
